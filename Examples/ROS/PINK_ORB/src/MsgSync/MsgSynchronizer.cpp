@@ -1,4 +1,5 @@
 #include "MsgSynchronizer.h"
+#include "../../../src/IMU/configparam.h"
 
 namespace ORBVIO
 {
@@ -18,6 +19,7 @@ MsgSynchronizer::~MsgSynchronizer()
 
 bool MsgSynchronizer::getRecentMsgs(sensor_msgs::ImageConstPtr &imgmsg, std::vector<sensor_msgs::ImuConstPtr> &vimumsgs)
 {
+    unique_lock<mutex> lock1(_mutexImageQueue);
     if(_status == NOTINIT || _status == INIT)
     {
         //ROS_INFO("synchronizer not inited");
@@ -111,8 +113,8 @@ bool MsgSynchronizer::getRecentMsgs(sensor_msgs::ImageConstPtr &imgmsg, std::vec
     }
 
     // the camera fps 20Hz, imu message 100Hz. so there should be not more than 5 imu messages between images
-    if(vimumsgs.size()>10)
-        ROS_WARN("%lu imu messages between images, note",vimumsgs.size());
+    //if(vimumsgs.size()>10)
+        //ROS_WARN("%lu imu messages between images, note",vimumsgs.size());
     if(vimumsgs.size()==0)
         ROS_ERROR("no imu message between images!");
 
@@ -121,6 +123,8 @@ bool MsgSynchronizer::getRecentMsgs(sensor_msgs::ImageConstPtr &imgmsg, std::vec
 
 void MsgSynchronizer::addImuMsg(const sensor_msgs::ImuConstPtr &imumsg)
 {
+    unique_lock<mutex> lock(_mutexIMUQueue);
+
     if(_imageMsgDelaySec>=0) {
         _imuMsgQueue.push(imumsg);
         if(_status == NOTINIT)
@@ -186,6 +190,13 @@ void MsgSynchronizer::addImageMsg(const sensor_msgs::ImageConstPtr &imgmsg)
             _imageMsgQueue.push(imgmsg);
         }
 
+    }
+
+    if(ORB_SLAM2::ConfigParam::GetRealTimeFlag())
+    {
+        // Ignore earlier frames
+        if(_imageMsgQueue.size()>2)
+            _imageMsgQueue.pop();
     }
 }
 

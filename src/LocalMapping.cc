@@ -86,6 +86,36 @@ cv::Mat LocalMapping::GetGravityVec()
     return mGravityVec.clone();
 }
 
+cv::Mat LocalMapping::GetRwiInit()
+{
+    return mRwiInit.clone();
+}
+
+void LocalMapping::VINSInitThread()
+{
+    unsigned long initedid = 0;
+    cerr<<"start VINSInitThread"<<endl;
+    while(1)
+    {
+        if(KeyFrame::nNextId > 2)
+            if(!GetVINSInited() && mpCurrentKeyFrame->mnId > initedid)
+            {
+                initedid = mpCurrentKeyFrame->mnId;
+
+                bool tmpbool = TryInitVIO();
+                if(tmpbool)
+                {
+                    //SetFirstVINSInited(true);
+                    //SetVINSInited(true);
+                    break;
+                }
+            }
+        usleep(3000);
+        if(isFinished())
+            break;
+    }
+}
+
 bool LocalMapping::TryInitVIO(void)
 {
     if(mpMap->KeyFramesInMap()<=mnLocalWindowSize)
@@ -93,10 +123,10 @@ bool LocalMapping::TryInitVIO(void)
 
     static bool fopened = false;
     static ofstream fgw,fscale,fbiasa,fcondnum,ftime,fbiasg;
+    string tmpfilepath = ConfigParam::getTmpFilePath();
     if(!fopened)
     {
         // Need to modify this to correct path
-        string tmpfilepath = ConfigParam::getTmpFilePath();
         fgw.open(tmpfilepath+"gw.txt");
         fscale.open(tmpfilepath+"scale.txt");
         fbiasa.open(tmpfilepath+"biasa.txt");
@@ -126,10 +156,27 @@ bool LocalMapping::TryInitVIO(void)
     cv::Mat Rcb = Rbc.t();
     cv::Mat pcb = -Rcb*pbc;
 
+    /*if(ConfigParam::GetRealTimeFlag())
+    {
+        // Wait KeyFrame Culling.
+        // 1. if KeyFrame Culling is running, wait until finished.
+        // 2. if KFs are being copied, then don't run KeyFrame Culling (in KeyFrameCulling function)
+        while(GetFlagCopyInitKFs())
+        {
+            usleep(1000);
+        }
+    }
+    SetFlagCopyInitKFs(true);
+*/
     // Use all KeyFrames in map to compute
     vector<KeyFrame*> vScaleGravityKF = mpMap->GetAllKeyFrames();
     int N = vScaleGravityKF.size();
-
+  /*  KeyFrame* pNewestKF = vScaleGravityKF[N-1];
+    vector<cv::Mat> vTwc;
+    vector<IMUPreintegrator> vIMUPreInt;
+    // Store initialization-required KeyFrame data
+    vector<KeyFrameInit*> vKFInit;
+*/
     // Step 1.
     // Try to compute initial gyro bias, using optimization with Gauss-Newton
     Vector3d bgest = Optimizer::OptimizeInitialGyroBias(vScaleGravityKF);
@@ -577,6 +624,7 @@ void LocalMapping::Run()
                 }
 
                 // Try to initialize VIO, if not inited
+    		if(!ConfigParam::GetRealTimeFlag()){
                 if(!GetVINSInited())
                 {
                     bool tmpbool = TryInitVIO();
@@ -594,7 +642,7 @@ void LocalMapping::Run()
                 // Check redundant local Keyframes
                 KeyFrameCulling();
             }
-
+	}
             mpLoopCloser->InsertKeyFrame(mpCurrentKeyFrame);
         }
         else if(Stop())

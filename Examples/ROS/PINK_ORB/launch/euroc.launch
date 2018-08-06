@@ -1,0 +1,7 @@
+<launch>
+
+ 	<node pkg="PINK_ORB" type="VIO" name="VIO" args="$(find PINK_ORB)/../../../Vocabulary/ORBvoc.bin $(find PINK_ORB)/../../../config/euroc.yaml" cwd="node" output="screen">
+	</node>
+	<node pkg="rosbag" type="play" name="bag_player" args="$(find PINK_ORB)/../../../../euroc/V1_01_easy.bag" />
+
+</launch>

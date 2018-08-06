@@ -66,7 +66,7 @@ void MapDrawer::DrawMapPoints()
 
     glPointSize(mPointSize);
     glBegin(GL_POINTS);
-    glColor3f(1.0,0.0,0.0);
+    glColor3f(0.0,0.8,0.0);
 
     for(set<MapPoint*>::iterator sit=spRefMPs.begin(), send=spRefMPs.end(); sit!=send; sit++)
     {
@@ -192,7 +192,7 @@ void MapDrawer::DrawCurrentCamera(pangolin::OpenGlMatrix &Twc)
 
     glLineWidth(mCameraLineWidth);
     //glColor3f(0.0f,1.0f,0.0f);
-    glColor3f(1.0f,0.0f,1.0f);
+    glColor3f(0.0f,0.0f,1.0f);
     glBegin(GL_LINES);
     glVertex3f(0,0,0);
     glVertex3f(w,h,z);

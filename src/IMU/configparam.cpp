@@ -12,6 +12,7 @@ int ConfigParam::_LocalWindowSize = 10;
 double ConfigParam::_ImageDelayToIMU = 0;
 bool ConfigParam::_bAccMultiply9p8 = false;
 std::string ConfigParam::_tmpFilePath = "";
+bool ConfigParam::_bRealTime = true;
 
 ConfigParam::ConfigParam(std::string configfile)
 {
@@ -71,6 +72,12 @@ ConfigParam::ConfigParam(std::string configfile)
         int tmpBool = fSettings["IMU.multiplyG"];
         _bAccMultiply9p8 = (tmpBool != 0);
         std::cout<<"whether acc*9.8? 0/1: "<<_bAccMultiply9p8<<std::endl;
+    }
+
+    {
+        int tmpBool = fSettings["test.RealTime"];
+        _bRealTime = (tmpBool != 0);
+        std::cout<<"whether run realtime? 0/1: "<<_bRealTime<<std::endl;
     }
 }
 

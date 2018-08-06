@@ -52,7 +52,7 @@ namespace ORB_SLAM2
 
 void Tracking::RecomputeIMUBiasAndCurrentNavstate(NavState& nscur)
 {
-    size_t N = mv20FramesReloc.size();
+    int N = mv20FramesReloc.size();
 
     //Test log
     if(N!=20) cerr<<"Frame vector size not 20 to compute bias after reloc??? size: "<<mv20FramesReloc.size()<<endl;
@@ -60,7 +60,7 @@ void Tracking::RecomputeIMUBiasAndCurrentNavstate(NavState& nscur)
     // Estimate gyr bias
     Vector3d bg = Optimizer::OptimizeInitialGyroBias(mv20FramesReloc);
     // Update gyr bias of Frames
-    for(size_t i=0; i<N; i++)
+    for(int i=0; i<N; i++)
     {
         Frame& frame = mv20FramesReloc[i];
         //Test log
@@ -72,7 +72,7 @@ void Tracking::RecomputeIMUBiasAndCurrentNavstate(NavState& nscur)
     // Re-compute IMU pre-integration
     vector<IMUPreintegrator> v19IMUPreint;
     v19IMUPreint.reserve(20-1);
-    for(size_t i=0; i<N; i++)
+    for(int i=0; i<N; i++)
     {
         if(i==0)
             continue;
@@ -165,7 +165,7 @@ void Tracking::RecomputeIMUBiasAndCurrentNavstate(NavState& nscur)
     Vector3d ba = Converter::toVector3d(ba_cv);
 
     // Update acc bias
-    for(size_t i=0; i<N; i++)
+    for(int i=0; i<N; i++)
     {
         Frame& frame = mv20FramesReloc[i];
         //Test log
@@ -335,8 +335,9 @@ bool Tracking::TrackWithIMU(bool bMapUpdated)
 
     // Predict NavState&Pose by IMU
     // And compute the IMU pre-integration for PoseOptimization
-    PredictNavStateByIMU(bMapUpdated);
 
+    PredictNavStateByIMU(bMapUpdated);
+    //cout << "bmap is: " << bMapUpdated << endl;
     fill(mCurrentFrame.mvpMapPoints.begin(),mCurrentFrame.mvpMapPoints.end(),static_cast<MapPoint*>(NULL));
 
     // Project points seen in previous frame

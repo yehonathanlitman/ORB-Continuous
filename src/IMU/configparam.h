@@ -25,6 +25,7 @@ public:
     static bool GetAccMultiply9p8();
 
     static double GetG(){return _g;}
+    static bool GetRealTimeFlag() {return _bRealTime;}
 
     std::string _bagfile;
     std::string _imageTopic;
@@ -43,7 +44,7 @@ private:
     static bool _bAccMultiply9p8;
 
     static double _g;
-
+    static bool _bRealTime;
 };
 
 }
