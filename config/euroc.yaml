@@ -7,7 +7,7 @@ test.RealTime: 1
 
 # Modify test.InitVIOTmpPath and bagfile to the correct path
 # Path to save tmp files/results
-test.InitVIOTmpPath: "/home/bulgogi/Downloads/ORB-VINS_RK4/config/res/"
+test.InitVIOTmpPath: "/home/bulgogi/Downloads/ORB-Continuous/config/res/"
 
 ## For good initialization (no movement at the beginning for some bag)
 test.DiscardTime: 0
@@ -52,7 +52,7 @@ Camera.Tbc:
   0.0, 0.0, 0.0, 1.0]
 
 # Local Window size
-LocalMapping.LocalWindowSize: 20
+LocalMapping.LocalWindowSize: 10 #FOR V1_01 SET 10, FOR MH_01 SET 20
 
 #--------------------------------------------------------------------------------------------
 # Camera Parameters. Adjust them!

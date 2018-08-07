@@ -517,6 +517,114 @@ bool LocalMapping::TryInitVIO(void)
             pKF->ComputePreInt();
         }
     }
+      /*  unsigned long nGBAKF = mpCurrentKeyFrame->mnId;
+
+        //Optimizer::GlobalBundleAdjustmentNavStatePRV(mpMap,mGravityVec,10,NULL,nGBAKF,false);
+        cerr<<"finish global BA after vins init"<<endl;
+        if(ConfigParam::GetRealTimeFlag())
+        {
+            // Update pose
+            // Stop local mapping, and
+
+            // Wait until Local Mapping has effectively stopped
+
+
+            cv::Mat cvTbc = ConfigParam::GetMatTbc();
+
+            {
+                unique_lock<mutex> lock(mpMap->mMutexMapUpdate);
+
+                // Correct keyframes starting at map first keyframe
+                list<KeyFrame*> lpKFtoCheck(mpMap->mvpKeyFrameOrigins.begin(),mpMap->mvpKeyFrameOrigins.end());
+
+                while(!lpKFtoCheck.empty())
+                {
+                    KeyFrame* pKF = lpKFtoCheck.front();
+                    const set<KeyFrame*> sChilds = pKF->GetChilds();
+                    cv::Mat Twc = pKF->GetPoseInverse();
+                    for(set<KeyFrame*>::const_iterator sit=sChilds.begin();sit!=sChilds.end();sit++)
+                    {
+                        KeyFrame* pChild = *sit;
+                        if(pChild->mnBAGlobalForKF!=nGBAKF)
+                        {
+                            cerr<<"correct KF after gBA in VI init: "<<pChild->mnId<<endl;
+                            cv::Mat Tchildc = pChild->GetPose()*Twc;
+                            pChild->mTcwGBA = Tchildc*pKF->mTcwGBA;//Tcorc*pKF->mTcwGBA;
+                            pChild->mnBAGlobalForKF=nGBAKF;
+
+                            // Set NavStateGBA and correct the P/V/R
+                            pChild->mNavStateGBA = pChild->GetNavState();
+                            cv::Mat TwbGBA = Converter::toCvMatInverse(cvTbc*pChild->mTcwGBA);
+                            Matrix3d RwbGBA = Converter::toMatrix3d(TwbGBA.rowRange(0,3).colRange(0,3));
+                            Vector3d PwbGBA = Converter::toVector3d(TwbGBA.rowRange(0,3).col(3));
+                            Matrix3d Rw1 = pChild->mNavStateGBA.Get_RotMatrix();
+                            Vector3d Vw1 = pChild->mNavStateGBA.Get_V();
+                            Vector3d Vw2 = RwbGBA*Rw1.transpose()*Vw1;   // bV1 = bV2 ==> Rwb1^T*wV1 = Rwb2^T*wV2 ==> wV2 = Rwb2*Rwb1^T*wV1
+                            pChild->mNavStateGBA.Set_Pos(PwbGBA);
+                            pChild->mNavStateGBA.Set_Rot(RwbGBA);
+                            pChild->mNavStateGBA.Set_Vel(Vw2);
+                        }
+                        lpKFtoCheck.push_back(pChild);
+                    }
+
+                    pKF->mTcwBefGBA = pKF->GetPose();
+                    //pKF->SetPose(pKF->mTcwGBA);
+                    pKF->mNavStateBefGBA = pKF->GetNavState();
+                    pKF->SetNavState(pKF->mNavStateGBA);
+                    pKF->UpdatePoseFromNS(cvTbc);
+
+                    lpKFtoCheck.pop_front();
+
+                }
+
+                // Correct MapPoints
+                const vector<MapPoint*> vpMPs = mpMap->GetAllMapPoints();
+
+                for(size_t i=0; i<vpMPs.size(); i++)
+                {
+                    MapPoint* pMP = vpMPs[i];
+
+                    if(pMP->isBad())
+                        continue;
+
+                    if(pMP->mnBAGlobalForKF==nGBAKF)
+                    {
+                        // If optimized by Global BA, just update
+                        pMP->SetWorldPos(pMP->mPosGBA);
+                    }
+                    else
+                    {
+                        // Update according to the correction of its reference keyframe
+                        KeyFrame* pRefKF = pMP->GetReferenceKeyFrame();
+
+                        if(pRefKF->mnBAGlobalForKF!=nGBAKF)
+                            continue;
+
+                        // Map to non-corrected camera
+                        cv::Mat Rcw = pRefKF->mTcwBefGBA.rowRange(0,3).colRange(0,3);
+                        cv::Mat tcw = pRefKF->mTcwBefGBA.rowRange(0,3).col(3);
+                        cv::Mat Xc = Rcw*pMP->GetWorldPos()+tcw;
+
+                        // Backproject using corrected camera
+                        cv::Mat Twc = pRefKF->GetPoseInverse();
+                        cv::Mat Rwc = Twc.rowRange(0,3).colRange(0,3);
+                        cv::Mat twc = Twc.rowRange(0,3).col(3);
+
+                        pMP->SetWorldPos(Rwc*Xc+twc);
+                    }
+                }
+
+                cout << "Map updated!" << endl;
+
+                // Map updated, set flag for Tracking
+
+                // Release LocalMapping
+
+                Release();
+            }
+        }
+*/
+    
 
     return bVIOInited;
 }
